@@ -1,0 +1,20 @@
+{
+ "upscaler": "reference",
+ "stream_resolution": "1920x1080",
+ "speed": {
+  "p50_ms": 1.0346660001232522,
+  "throughput_fps": 966.4954679876186,
+  "realtime_at_video_fps": true,
+  "note": "decode time only; no upscaling"
+ },
+ "bandwidth": {
+  "lowres_stream_kbps": 3069.397531914894,
+  "stream_kb": 2236.19921875
+ },
+ "quality_in_view": {
+  "psnr_db": 42.260833740234375,
+  "ssim": 0.9829531951248701,
+  "flicker_mean_abs": 1.425486552906724,
+  "region_deg": 120
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "method": "fastsrgan_vp120",
+ "stream_file": "out/lowres.mp4",
+ "stream_resolution": "480x270",
+ "output_resolution": "1920x1080",
+ "speed": {
+  "ms_per_frame_busy": 35.90367912668929,
+  "decode_ms": 0.35722527335262083,
+  "upscale_ms": 35.546453853336665,
+  "fps": 24.99411544794493,
+  "realtime": true
+ },
+ "cpu": {
+  "avg_cores_busy_during_playback": 0.5728224694432,
+  "cpu_ms_per_frame": 22.91829333333333
+ },
+ "ram": {
+  "peak_mb": 613.40625,
+  "after_setup_mb": 342.765625
+ },
+ "gpu": {
+  "mps_driver_peak_mb": 1068.734375,
+  "util_avg_pct": 81.74418604651163,
+  "util_max_pct": 91.0,
+  "util_idle_pct": 2.2,
+  "gpu_mem_in_use_mb": 1524.515625,
+  "gpu_mem_idle_mb": 462.0
+ }
+}

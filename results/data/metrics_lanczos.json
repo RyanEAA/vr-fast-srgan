@@ -1,0 +1,44 @@
+{
+  "upscaler": "lanczos",
+  "frames": 150,
+  "video_fps": 25.132978723404257,
+  "lowres_size": [
+    480,
+    270
+  ],
+  "output_size": [
+    1920,
+    1080
+  ],
+  "speed": {
+    "model_load_s": 2.73750001724693e-05,
+    "first_frame_ms": 2.7579589996094,
+    "p50_ms": 2.198333000706043,
+    "p95_ms": 2.603475000069011,
+    "max_ms": 3.365624999787542,
+    "throughput_fps": 444.957433640204,
+    "realtime_at_video_fps": true
+  },
+  "memory": {
+    "peak_rss_mb": 671.5625,
+    "rss_added_by_model_mb": 0.0,
+    "device": null
+  },
+  "bandwidth": {
+    "lowres_stream_kbps": 531.232085106383,
+    "native_stream_kbps_same_crf": 3069.397531914894,
+    "saving_pct": 82.69262682390426
+  },
+  "quality_vs_original": {
+    "psnr_db": 31.896543502807617,
+    "ssim": 0.9260216760286414,
+    "flicker_mean_abs": 3.5316689452315844
+  },
+  "viewport_deg": null,
+  "quality_in_view": {
+    "region_deg": 120,
+    "psnr_db": 31.093502044677734,
+    "ssim": 0.9215678739362985,
+    "flicker_mean_abs": 3.6943533034660083
+  }
+}

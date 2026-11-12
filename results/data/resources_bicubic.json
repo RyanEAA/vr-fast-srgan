@@ -1,0 +1,29 @@
+{
+ "method": "bicubic",
+ "stream_file": "out/lowres.mp4",
+ "stream_resolution": "480x270",
+ "output_resolution": "1920x1080",
+ "speed": {
+  "ms_per_frame_busy": 4.554238286679417,
+  "decode_ms": 0.7802986333505638,
+  "upscale_ms": 3.7739396533288527,
+  "fps": 24.978761982478044,
+  "realtime": true
+ },
+ "cpu": {
+  "avg_cores_busy_during_playback": 0.5269574581099931,
+  "cpu_ms_per_frame": 21.096220000000002
+ },
+ "ram": {
+  "peak_mb": 193.25,
+  "after_setup_mb": 46.484375
+ },
+ "gpu": {
+  "mps_driver_peak_mb": 0.0,
+  "util_avg_pct": 14.146341463414634,
+  "util_max_pct": 17.0,
+  "util_idle_pct": 3.0,
+  "gpu_mem_in_use_mb": 404.375,
+  "gpu_mem_idle_mb": 403.8125
+ }
+}

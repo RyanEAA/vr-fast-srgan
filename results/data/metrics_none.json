@@ -1,0 +1,44 @@
+{
+  "upscaler": "none",
+  "frames": 150,
+  "video_fps": 25.132978723404257,
+  "lowres_size": [
+    480,
+    270
+  ],
+  "output_size": [
+    1920,
+    1080
+  ],
+  "speed": {
+    "model_load_s": 2.45830005951575e-05,
+    "first_frame_ms": 1.7905419999806327,
+    "p50_ms": 0.4891660000794218,
+    "p95_ms": 0.6399838001016178,
+    "max_ms": 1.3015420008741785,
+    "throughput_fps": 1990.5599409844885,
+    "realtime_at_video_fps": true
+  },
+  "memory": {
+    "peak_rss_mb": 694.171875,
+    "rss_added_by_model_mb": 0.0,
+    "device": null
+  },
+  "bandwidth": {
+    "lowres_stream_kbps": 531.232085106383,
+    "native_stream_kbps_same_crf": 3069.397531914894,
+    "saving_pct": 82.69262682390426
+  },
+  "quality_vs_original": {
+    "psnr_db": 29.86252212524414,
+    "ssim": 0.8796793747656279,
+    "flicker_mean_abs": 3.773580534970793
+  },
+  "viewport_deg": null,
+  "quality_in_view": {
+    "region_deg": 120,
+    "psnr_db": 28.87092399597168,
+    "ssim": 0.865731918404044,
+    "flicker_mean_abs": 3.9683093986918965
+  }
+}

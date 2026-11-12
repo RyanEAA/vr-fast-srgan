@@ -1,0 +1,20 @@
+{
+ "upscaler": "native_vp120",
+ "stream_resolution": "640x720",
+ "speed": {
+  "p50_ms": 0.3455840005699429,
+  "throughput_fps": 2893.6524791390325,
+  "realtime_at_video_fps": true,
+  "note": "decode time only; no upscaling"
+ },
+ "bandwidth": {
+  "lowres_stream_kbps": 1045.6257446808513,
+  "stream_kb": 761.787109375
+ },
+ "quality_in_view": {
+  "psnr_db": 40.606143951416016,
+  "ssim": 0.9796781079247927,
+  "flicker_mean_abs": 1.729173317875342,
+  "region_deg": 120
+ }
+}

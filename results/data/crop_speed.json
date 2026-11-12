@@ -1,0 +1,222 @@
+[
+ {
+  "gpu_mem_mb": 2091,
+  "tiles": 1,
+  "case": "1080p clip (this test): full frame",
+  "fp16": false,
+  "input": "480x240",
+  "output": "1920x960",
+  "ms": 141.9,
+  "fps": 7.0,
+  "out_mpix_per_s": 13.0
+ },
+ {
+  "gpu_mem_mb": 1067,
+  "tiles": 1,
+  "case": "1080p clip (this test): viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": false,
+  "input": "160x160",
+  "output": "640x640",
+  "ms": 30.6,
+  "fps": 32.7,
+  "out_mpix_per_s": 13.4
+ },
+ {
+  "gpu_mem_mb": 1067,
+  "tiles": 1,
+  "case": "1080p clip (this test): viewport 90x90 deg",
+  "fp16": false,
+  "input": "120x120",
+  "output": "480x480",
+  "ms": 17.2,
+  "fps": 58.2,
+  "out_mpix_per_s": 13.4
+ },
+ {
+  "gpu_mem_mb": 43,
+  "tiles": 1,
+  "case": "1080p clip (this test): fovea 20x20 deg (eye tracking)",
+  "fp16": false,
+  "input": "27x27",
+  "output": "108x108",
+  "ms": 1.3,
+  "fps": 786.0,
+  "out_mpix_per_s": 9.2
+ },
+ {
+  "gpu_mem_mb": 2091,
+  "tiles": 1,
+  "case": "4K 360 video: viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": false,
+  "input": "320x320",
+  "output": "1280x1280",
+  "ms": 126.5,
+  "fps": 7.9,
+  "out_mpix_per_s": 12.9
+ },
+ {
+  "gpu_mem_mb": 1035,
+  "tiles": 1,
+  "case": "4K 360 video: viewport 90x90 deg",
+  "fp16": false,
+  "input": "240x240",
+  "output": "960x960",
+  "ms": 72.1,
+  "fps": 13.9,
+  "out_mpix_per_s": 12.8
+ },
+ {
+  "gpu_mem_mb": 51,
+  "tiles": 1,
+  "case": "4K 360 video: fovea 20x20 deg (eye tracking)",
+  "fp16": false,
+  "input": "53x53",
+  "output": "212x212",
+  "ms": 3.5,
+  "fps": 284.6,
+  "out_mpix_per_s": 12.8
+ },
+ {
+  "gpu_mem_mb": 1067,
+  "tiles": 16,
+  "case": "8K 360 video: viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": false,
+  "input": "640x640",
+  "output": "2560x2560",
+  "ms": 490.0,
+  "fps": 2.0,
+  "out_mpix_per_s": 13.4
+ },
+ {
+  "gpu_mem_mb": 1067,
+  "tiles": 9,
+  "case": "8K 360 video: viewport 90x90 deg",
+  "fp16": false,
+  "input": "480x480",
+  "output": "1920x1920",
+  "ms": 275.7,
+  "fps": 3.6,
+  "out_mpix_per_s": 13.4
+ },
+ {
+  "gpu_mem_mb": 1067,
+  "tiles": 1,
+  "case": "8K 360 video: fovea 20x20 deg (eye tracking)",
+  "fp16": false,
+  "input": "107x107",
+  "output": "428x428",
+  "ms": 14.2,
+  "fps": 70.6,
+  "out_mpix_per_s": 12.9
+ },
+ {
+  "gpu_mem_mb": 1051,
+  "tiles": 1,
+  "case": "1080p clip (this test): full frame",
+  "fp16": true,
+  "input": "480x240",
+  "output": "1920x960",
+  "ms": 107.5,
+  "fps": 9.3,
+  "out_mpix_per_s": 17.1
+ },
+ {
+  "gpu_mem_mb": 1088,
+  "tiles": 1,
+  "case": "1080p clip (this test): viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": true,
+  "input": "160x160",
+  "output": "640x640",
+  "ms": 23.4,
+  "fps": 42.8,
+  "out_mpix_per_s": 17.5
+ },
+ {
+  "gpu_mem_mb": 1088,
+  "tiles": 1,
+  "case": "1080p clip (this test): viewport 90x90 deg",
+  "fp16": true,
+  "input": "120x120",
+  "output": "480x480",
+  "ms": 13.2,
+  "fps": 75.6,
+  "out_mpix_per_s": 17.4
+ },
+ {
+  "gpu_mem_mb": 64,
+  "tiles": 1,
+  "case": "1080p clip (this test): fovea 20x20 deg (eye tracking)",
+  "fp16": true,
+  "input": "27x27",
+  "output": "108x108",
+  "ms": 1.3,
+  "fps": 776.4,
+  "out_mpix_per_s": 9.1
+ },
+ {
+  "gpu_mem_mb": 1056,
+  "tiles": 1,
+  "case": "4K 360 video: viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": true,
+  "input": "320x320",
+  "output": "1280x1280",
+  "ms": 94.9,
+  "fps": 10.5,
+  "out_mpix_per_s": 17.3
+ },
+ {
+  "gpu_mem_mb": 1116,
+  "tiles": 1,
+  "case": "4K 360 video: viewport 90x90 deg",
+  "fp16": true,
+  "input": "240x240",
+  "output": "960x960",
+  "ms": 53.8,
+  "fps": 18.6,
+  "out_mpix_per_s": 17.1
+ },
+ {
+  "gpu_mem_mb": 60,
+  "tiles": 1,
+  "case": "4K 360 video: fovea 20x20 deg (eye tracking)",
+  "fp16": true,
+  "input": "53x53",
+  "output": "212x212",
+  "ms": 3.0,
+  "fps": 333.0,
+  "out_mpix_per_s": 15.0
+ },
+ {
+  "gpu_mem_mb": 1088,
+  "tiles": 16,
+  "case": "8K 360 video: viewport 120x120 deg (90 deg FOV + head-motion margin)",
+  "fp16": true,
+  "input": "640x640",
+  "output": "2560x2560",
+  "ms": 373.9,
+  "fps": 2.7,
+  "out_mpix_per_s": 17.5
+ },
+ {
+  "gpu_mem_mb": 1088,
+  "tiles": 9,
+  "case": "8K 360 video: viewport 90x90 deg",
+  "fp16": true,
+  "input": "480x480",
+  "output": "1920x1920",
+  "ms": 210.2,
+  "fps": 4.8,
+  "out_mpix_per_s": 17.5
+ },
+ {
+  "gpu_mem_mb": 1088,
+  "tiles": 1,
+  "case": "8K 360 video: fovea 20x20 deg (eye tracking)",
+  "fp16": true,
+  "input": "107x107",
+  "output": "428x428",
+  "ms": 11.1,
+  "fps": 90.3,
+  "out_mpix_per_s": 16.5
+ }
+]

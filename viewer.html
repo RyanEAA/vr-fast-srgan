@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>360 upscaler comparison</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#000;font:13px/1.4 system-ui,sans-serif;color:#eee}
+  canvas{display:block}
+  #panel{position:fixed;right:12px;bottom:12px;z-index:3;background:rgba(10,10,14,.82);padding:10px 12px;border-radius:10px;
+         max-width:calc(100vw - 360px);backdrop-filter:blur(6px)}
+  .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+  .row .lbl{width:64px;color:#aaa;font-size:12px}
+  button{font:inherit;color:#eee;background:#24242c;border:2px solid #3a3a46;border-radius:7px;padding:4px 9px;cursor:pointer}
+  button:hover{border-color:#777}
+  button.on{color:#000;font-weight:700;border-color:transparent}
+  button kbd{opacity:.6;font-size:11px;margin-right:4px}
+  button[disabled]{opacity:.3;cursor:default}
+  #hint{color:#999;font-size:12px;margin-top:4px}
+  .badge{position:fixed;top:14px;z-index:2;padding:8px 14px;border-radius:10px;box-sizing:border-box;
+         background:rgba(0,0,0,.72);border-left:8px solid #fff;pointer-events:none;text-align:left}
+  .badge.center{left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px)}
+  .badge.left{left:12px;max-width:calc(50vw - 24px)}
+  .badge.right{left:calc(50vw + 12px);max-width:calc(50vw - 24px)}
+  .badge .name{font-size:22px;font-weight:700}
+  .badge .sub{font-size:12px;color:#ccc;font-family:ui-monospace,monospace}
+  #divider{position:fixed;top:0;bottom:0;left:50%;width:2px;background:#fff;z-index:2;display:none}
+  #stats{position:fixed;right:12px;top:12px;z-index:2;font:11px ui-monospace,monospace;color:#9cf;
+         background:rgba(0,0,0,.6);padding:4px 8px;border-radius:6px}
+  #diag{position:fixed;left:12px;top:12px;z-index:3;background:rgba(10,10,14,.88);border-radius:10px;padding:10px 12px;
+        font-size:12px;width:310px;box-sizing:border-box;max-height:calc(100vh - 24px);overflow:auto;backdrop-filter:blur(6px)}
+  body.withdiag .badge.center{left:calc(50% + 165px);max-width:calc(100vw - 360px)}
+  body.withdiag .badge.left{left:334px;max-width:calc(50vw - 346px)}
+  .lm{margin:0 0 8px}
+  .lm .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .lm .nm{color:#aaa}
+  .lm .val{font:600 14px ui-monospace,monospace}
+  .lm .sb{color:#777;font-size:11px}
+  .lm canvas{width:286px;height:38px;display:block;margin-top:2px;background:rgba(255,255,255,.03);border-radius:4px}
+  .livetag{display:inline-block;background:#e03131;color:#fff;font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px}
+  .lnote{color:#888;font-size:11px;line-height:1.45;margin-top:6px}
+  #diag h3{margin:0 0 6px;font-size:13px}
+  #diag table, #cmp table{border-collapse:collapse}
+  #diag td{padding:2px 8px 2px 0;vertical-align:top}
+  #diag td.k{color:#999;white-space:nowrap}
+  #diag td.v{font-family:ui-monospace,monospace;white-space:nowrap}
+  #diag tr.sec td{color:#ccc;font-weight:700;padding-top:8px;border-bottom:1px solid #333}
+  #cmp{position:fixed;inset:60px 20px 20px 20px;z-index:4;background:rgba(10,10,14,.95);border-radius:12px;padding:14px;
+       overflow:auto;display:none;font-size:12px}
+  #cmp th{position:sticky;top:0;background:#16161c;color:#aaa;font-weight:600;text-align:right;padding:6px 8px;border-bottom:1px solid #444}
+  #cmp th:first-child,#cmp td:first-child{text-align:left}
+  #cmp td{padding:6px 8px;text-align:right;font-family:ui-monospace,monospace;border-bottom:1px solid #26262e;white-space:nowrap}
+  #cmp tr{cursor:pointer} #cmp tbody tr:hover{background:#22222a}
+  #cmp tr.cur{outline:2px solid #fff}
+  #cmp td.best{color:#69db7c;font-weight:700}
+  #cmp .note{color:#999;margin-top:10px;line-height:1.5}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  #vrslot > *{position:static !important;left:auto !important;bottom:auto !important;width:auto !important;
+    display:inline-block !important;font:inherit !important;font-size:12px !important;padding:4px 9px !important;opacity:.8 !important;
+    border:2px solid #3a3a46 !important;border-radius:7px !important;background:#24242c !important;color:#eee !important;
+    text-decoration:none !important;margin:0 !important;z-index:auto !important}
+  #clipSel{font:inherit;color:#eee;background:#24242c;border:2px solid #3a3a46;border-radius:7px;padding:3px 6px;max-width:330px}
+  #clipStatus{color:#aaa;font-size:12px}
+  #clipStatus.warn{color:#ffa94d}
+</style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<div class="badge" id="badgeL"><div class="name"></div><div class="sub"></div></div>
+<div class="badge" id="badgeR" style="display:none"><div class="name"></div><div class="sub"></div></div>
+<div id="divider"></div>
+<div id="panel">
+  <div class="row" id="rowMain"><span class="lbl">View</span></div>
+  <div class="row" id="rowCmp" style="display:none"><span class="lbl">Right side</span></div>
+  <div class="row" id="rowVideo" style="display:none"><span class="lbl">Video</span>
+    <select id="clipSel"></select>
+    <button id="btnUpload">⬆ Upload video</button><input type="file" id="fileIn" accept="video/*" hidden>
+    <span id="clipStatus"></span></div>
+  <div class="row">
+    <button id="btnSplit"><kbd>S</kbd>Split view</button>
+    <button id="btnPlay"><kbd>Space</kbd>Pause</button>
+    <button id="btnDiag"><kbd>D</kbd>Diagnostics</button>
+    <button id="btnCmp"><kbd>T</kbd>Compare all</button>
+    <span id="vrslot"></span>
+  </div>
+  <div id="hint">Keys 1–9 switch the view · Shift+1–9 picks the right side in split view · V shows the upscaled region · D diagnostics · T table of all techniques · H hides this panel · drag to look · scroll to zoom</div>
+</div>
+<div id="stats"></div>
+<div id="diag"></div>
+<div id="cmp"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+
+const params = new URLSearchParams(location.search);
+const DIR = (params.get('dir') || 'out').replace(/\/$/, '');
+
+// Every version of the clip. "metrics" names out/metrics_<key>.json written by bench.py.
+const OPTIONS = [
+  { key: 'reference', name: 'Original (full-res stream)', file: 'reference.mp4', color: '#e5e5e5', metrics: 'reference_inview', res: 'native' },
+  { key: 'none',      name: 'No upscaler',                file: 'none.mp4',      color: '#ff6b6b', metrics: 'none', res: 'none' },
+  { key: 'bicubic',   name: 'Bicubic',                    file: 'bicubic.mp4',   color: '#4dabf7', metrics: 'bicubic', res: 'bicubic' },
+  { key: 'lanczos',   name: 'Lanczos',                    file: 'lanczos.mp4',   color: '#38d9a9', metrics: 'lanczos', res: 'lanczos' },
+  { key: 'fastsrgan', name: 'Fast-SRGAN',                 file: 'fastsrgan.mp4', color: '#ffa94d', metrics: 'fastsrgan' },
+  { key: 'fp16',      name: 'Fast-SRGAN (fp16)',          file: 'fastsrgan_fp16.mp4', color: '#ffd43b', metrics: 'fastsrgan_fp16', res: 'fastsrgan' },
+  { key: 'native',    name: 'Full-res at low-res bitrate', file: 'native_same_bitrate.mp4', color: '#cc5de8' },
+  { key: 'nvp',       name: 'Full-res, visible part only', file: 'native_vp120.mp4', color: '#a9e34b', metrics: 'native_vp120', res: 'native_vp120' },
+  { key: 'vp',        name: 'Fast-SRGAN in view only',    file: 'fastsrgan_fp16_vp120.mp4', color: '#ff8787', metrics: 'fastsrgan_fp16_vp120', res: 'fastsrgan_vp120' },
+];
+
+// ---------- metrics -> one-line summary under the label
+let FULL_KBPS = null;
+const getJSON = async p => { try { const r = await fetch(p); return r.ok ? await r.json() : null; } catch { return null; } };
+async function loadMetrics() {
+  const bic = await getJSON(`${DIR}/metrics_bicubic.json`);
+  for (const o of OPTIONS) {
+    const m = o.metrics ? await getJSON(`${DIR}/metrics_${o.metrics}.json`) : null;
+    const r = o.res ? await getJSON(`resources/${o.res}.json`) : null;
+    const d = { stream: {}, speed: {}, cpu: {}, gpu: {}, q: {} };
+    // stream
+    if (o.key === 'reference' || o.key === 'nvp') {
+      d.stream.res = m?.stream_resolution; d.stream.kbps = m?.bandwidth?.lowres_stream_kbps;
+    } else if (o.key === 'native') {
+      d.stream.res = '1920x1080'; d.stream.kbps = bic?.native_res_at_same_bitrate?.kbps;
+    } else if (m) {
+      d.stream.res = m.lowres_size ? m.lowres_size.join('x') : '480x270'; d.stream.kbps = m.bandwidth?.lowres_stream_kbps;
+    }
+    // processing speed (upscaler only; decode for the two full-res options)
+    if (m?.speed) { d.speed.ms = m.speed.p50_ms; d.speed.rt = m.speed.realtime_at_video_fps; }
+    // resources measured during playback at 25 fps
+    if (r) {
+      d.cpu.pct = r.cpu.avg_cores_busy_during_playback * 100;
+      d.cpu.ram = r.ram.peak_mb;
+      const g = r.gpu;
+      d.gpu.mem = g.gpu_mem_in_use_mb != null && g.gpu_mem_idle_mb != null ? Math.max(0, g.gpu_mem_in_use_mb - g.gpu_mem_idle_mb) : null;
+      d.gpu.util = g.util_avg_pct != null ? Math.max(0, g.util_avg_pct - (g.util_idle_pct || 0)) : null;
+      d.total = d.cpu.ram + (d.gpu.mem || 0);
+    }
+    // quality on the visible 120° region (falls back to whole frame)
+    const v = m?.quality_in_view;
+    if (v) Object.assign(d.q, { psnr: v.psnr_db, ssim: v.ssim, flick: v.flicker_mean_abs, where: `visible ${v.region_deg}°` });
+    else if (m?.quality_vs_original) Object.assign(d.q, { psnr: m.quality_vs_original.psnr_db, ssim: m.quality_vs_original.ssim,
+                                                          flick: m.quality_vs_original.flicker_mean_abs, where: 'whole frame' });
+    else if (o.key === 'native' && bic?.native_res_at_same_bitrate) Object.assign(d.q, { psnr: bic.native_res_at_same_bitrate.psnr_db, where: 'whole frame' });
+    if (o.key === 'reference') FULL_KBPS = d.stream.kbps;
+    o.d = d;
+  }
+  for (const o of OPTIONS) {
+    const d = o.d, k = d.stream.kbps;
+    d.stream.gbh = k != null ? k * 3600 / 8 / 1e6 : null;
+    d.stream.save = k != null && FULL_KBPS ? 100 * (1 - k / FULL_KBPS) : null;
+    o.sub = [k != null ? `${k.toFixed(0)} kbps (${d.stream.gbh.toFixed(2)} GB/h)` : null,
+             d.speed.ms != null ? `${d.speed.ms.toFixed(1)} ms/frame ${d.speed.rt ? '✓' : '✗'}` : null,
+             d.q.psnr != null ? `PSNR ${d.q.psnr.toFixed(1)} dB` : null,
+             d.total != null ? `${(d.total / 1024).toFixed(2)} GB mem` : null].filter(Boolean).join(' · ');
+  }
+}
+
+// ---------- diagnostics panel + comparison table
+const f = (x, dp = 1, unit = '') => x == null || Number.isNaN(x) ? '—' : `${x.toFixed(dp)}${unit}`;
+function diagRows(o) {
+  const d = o.d || { stream: {}, speed: {}, cpu: {}, gpu: {}, q: {} };
+  return [
+    ['Stream', null],
+    ['resolution sent', d.stream.res || '—'],
+    ['bitrate', f(d.stream.kbps, 0, ' kbps')],
+    ['per hour', f(d.stream.gbh, 2, ' GB')],
+    ['vs full-res stream', d.stream.save == null ? '—' : d.stream.save > 0.5 ? `${d.stream.save.toFixed(0)}% smaller` : 'baseline'],
+    ['Speed', null],
+    [o.key === 'reference' || o.key === 'nvp' ? 'decode time' : 'upscale time', f(d.speed.ms, 1, ' ms/frame')],
+    ['real time (25 fps)?', d.speed.rt == null ? '—' : d.speed.rt ? '✓ yes' : '✗ no'],
+    ['Resources (playing at 25 fps)', null],
+    ['CPU', f(d.cpu.pct, 0, '% of 1 core')],
+    ['RAM peak', f(d.cpu.ram, 0, ' MB')],
+    ['GPU memory added', f(d.gpu.mem, 0, ' MB')],
+    ['GPU busy', f(d.gpu.util, 0, '%')],
+    ['total memory', d.total == null ? '—' : `${(d.total / 1024).toFixed(2)} GB`],
+    [`Quality (${d.q.where || '—'})`, null],
+    ['PSNR (higher better)', f(d.q.psnr, 1, ' dB')],
+    ['SSIM (higher better)', f(d.q.ssim, 3)],
+    ['flicker (lower better)', f(d.q.flick, 2)],
+  ];
+}
+function renderDiag() {
+  const el = document.getElementById('diag');
+  const cols = split ? [main, cmp] : [main];
+  let h = '<table><tr><td></td>' + cols.map(o => `<td class="v"><span class="dot" style="background:${o.color}"></span><b style="color:${o.color}">${o.name}</b></td>`).join('') + '</tr>';
+  const rows = cols.map(diagRows);
+  rows[0].forEach(([k], i) => {
+    if (rows[0][i][1] === null) h += `<tr class="sec"><td colspan="${cols.length + 1}">${k}</td></tr>`;
+    else h += `<tr><td class="k">${k}</td>` + rows.map(r => `<td class="v">${r[i][1]}</td>`).join('') + '</tr>';
+  });
+  el.innerHTML = h + '</table>';
+}
+const CMP_COLS = [
+  ['Technique', o => o.name],
+  ['Sent', o => o.d.stream.res || '—'],
+  ['kbps', o => o.d.stream.kbps, 0, 'min'],
+  ['GB / hour', o => o.d.stream.gbh, 2, 'min'],
+  ['vs full-res', o => o.d.stream.save, 0, 'max', '%'],
+  ['ms / frame', o => o.d.speed.ms, 1, 'min'],
+  ['real time', o => o.d.speed.rt == null ? '—' : o.d.speed.rt ? '✓' : '✗'],
+  ['CPU %', o => o.d.cpu.pct, 0, 'min'],
+  ['RAM MB', o => o.d.cpu.ram, 0, 'min'],
+  ['GPU MB', o => o.d.gpu.mem, 0, 'min'],
+  ['GPU busy %', o => o.d.gpu.util, 0, 'min'],
+  ['PSNR dB', o => o.d.q.psnr, 1, 'max'],
+  ['SSIM', o => o.d.q.ssim, 3, 'max'],
+  ['flicker', o => o.d.q.flick, 2, 'min'],
+];
+function renderCmp() {
+  const el = document.getElementById('cmp');
+  const best = CMP_COLS.map(([, g, , dir]) => {
+    if (!dir) return null;
+    const vals = OPTIONS.map(o => o.d ? g(o) : null).filter(v => typeof v === 'number');
+    return vals.length ? (dir === 'min' ? Math.min(...vals) : Math.max(...vals)) : null;
+  });
+  let h = '<h3 style="margin:0 0 10px">All techniques — click a row to view it</h3><table><thead><tr>' +
+          CMP_COLS.map(c => `<th>${c[0]}</th>`).join('') + '</tr></thead><tbody>';
+  for (const o of OPTIONS) {
+    if (!o.d) continue;
+    h += `<tr data-key="${o.key}" class="${o === main ? 'cur' : ''}">`;
+    CMP_COLS.forEach(([name, g, dp, dir, unit], i) => {
+      const v = g(o);
+      if (i === 0) { h += `<td><span class="dot" style="background:${o.color}"></span>${v}</td>`; return; }
+      if (typeof v !== 'number') { h += `<td>${v ?? '—'}</td>`; return; }
+      h += `<td class="${best[i] != null && Math.abs(v - best[i]) < 1e-9 ? 'best' : ''}">${v.toFixed(dp)}${unit || ''}</td>`;
+    });
+    h += '</tr>';
+  }
+  h += `</tbody></table><div class="note">Green = best in column. Bandwidth comes from what is <b>sent</b>: every upscaler uses the same 480×270 low-res stream,
+  so they share the same kbps — the upscaler only changes how it looks after it arrives.<br>
+  ms / frame = time spent upscaling (for the two full-res streams it's decode time, since nothing is upscaled).<br>
+  Quality is scored on the visible 120°×120° region against the original video (Fast-SRGAN fp32 and full-res-at-low-bitrate: whole frame, older run).
+  CPU/RAM/GPU were measured while playing at 25 fps; GPU numbers are above the idle level. Fast-SRGAN fp32 and full-res-at-low-bitrate weren't resource-tested (fp16 was).
+  Press T to close.</div>`;
+  el.innerHTML = h;
+  el.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => select('main', OPTIONS.find(o => o.key === tr.dataset.key)));
+}
+let showDiag = true, showCmp = false;
+function toggleDiag() { showDiag = !showDiag; document.getElementById('diag').style.display = showDiag ? '' : 'none'; refreshUI(); }
+function toggleCmp() { showCmp = !showCmp; document.getElementById('cmp').style.display = showCmp ? 'block' : 'none'; refreshUI(); }
+
+// ---------- videos
+for (const o of OPTIONS) {
+  const v = document.createElement('video');
+  v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'auto';
+  v.src = `${DIR}/${o.file}`;
+  o.video = v; o.ok = true;
+  let tries = 0;  // the simple local server sometimes drops one of the 8 parallel loads; retry before giving up
+  v.onerror = () => {
+    if (tries++ < 4) { setTimeout(() => { v.src = `${DIR}/${o.file}?r=${tries}`; v.load(); }, 500 * tries); return; }
+    o.ok = false; o.btns?.forEach(b => b.disabled = true);
+  };
+  const t = new THREE.VideoTexture(v);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.minFilter = THREE.LinearFilter; t.generateMipmaps = false;
+  o.mat = new THREE.MeshBasicMaterial({ map: t });
+}
+
+// ---------- LIVE mode: the Mac runs the chosen technique in real time (live_server.py)
+let LIVE = false, liveMat = null, liveImg = null;
+const renderHist = [];  // viewer render fps, sampled here
+const LM = [
+  { k: 'kbps',          name: 'Stream bitrate',               unit: ' kbps', dp: 0, sub: h => h.kbps ? `${h.stream_res} sent → ${h.out_res || '?'} shown · ${(h.kbps * 3600 / 8 / 1e6).toFixed(2)} GB/hour` : '' },
+  { k: 'proc_ms',       name: 'Processing time per frame',    unit: ' ms', dp: 1, line: h => h.budget_ms, sub: h => `decode ${f(h.decode_ms, 1)} ms · worst ${f(h.proc_max_ms, 0)} ms · dashed = frame budget` + (h.tile ? ' · run in 160×160 tiles to fit memory' : '') },
+  { k: 'fps',           name: 'Frames delivered per second',  unit: '', dp: 1, line: h => 1000 / h.budget_ms, sub: () => 'dashed = video frame rate' },
+  { k: 'dropped_per_s', name: 'Dropped frames per second',    unit: '', dp: 1, sub: () => 'skipped because processing fell behind' },
+  { k: 'cpu_pct',       name: 'CPU (pipeline process)',        unit: '%', dp: 0, sub: () => '100% = one core' },
+  { k: 'rss_mb',        name: 'RAM (pipeline process)',        unit: ' MB', dp: 0, sub: h => h.torch_loaded ? 'PyTorch stays loaded after first Fast-SRGAN use' : '' },
+  { k: 'gpu_util_pct',  name: 'GPU busy (whole Mac)',          unit: '%', dp: 0 },
+  { k: 'gpu_mem_mb',    name: 'GPU memory in use (whole Mac)', unit: ' MB', dp: 0, sub: h => h.mps_mb ? `Fast-SRGAN holds ${f(h.mps_mb, 0)} MB` : '' },
+  { k: 'jpeg_ms',       name: 'Sending frame to this viewer',  unit: ' ms', dp: 1, sub: () => 'JPEG encoding; same for every technique' },
+  { k: 'q_psnr',        name: 'PSNR in view (recorded)',       unit: ' dB', dp: 1, sub: h => h.clip === 'pano' ? 'higher is better · from the benchmark' : 'only benchmarked for the pano test clip' },
+  { k: 'q_ssim',        name: 'SSIM in view (recorded)',       unit: '', dp: 3, sub: () => 'higher is better' },
+  { k: 'q_flick',       name: 'Flicker in view (recorded)',    unit: '', dp: 2, sub: () => 'lower is better' },
+  { k: 'render_fps',    name: 'Viewer render fps',             unit: '', dp: 0 },
+];
+const optByKey = k => OPTIONS.find(o => o.key === k);
+function addRecorded(h) {
+  const q = h.clip === 'pano' ? (optByKey(h.method)?.d?.q || {}) : {};
+  h.q_psnr = q.psnr; h.q_ssim = q.ssim; h.q_flick = q.flick;
+}
+function buildLivePanel() {
+  const el = document.getElementById('diag');
+  el.innerHTML = `<h3><span class="livetag">LIVE</span>measured on this Mac, last 2 min</h3>` +
+    LM.map(m => `<div class="lm" id="lm_${m.k}"><div class="top"><span class="nm">${m.name}</span><span class="val">—</span></div>
+      <canvas></canvas><div class="sb"></div></div>`).join('') +
+    `<div class="lnote">Graph colour = technique running at that moment. CPU and RAM are the Python process doing decode + upscale
+     (plus the JPEG step that sends frames here). GPU numbers are for the whole Mac, including this viewer. Quality is not measured live
+     (it needs the original video); it shows each technique's benchmark score.</div>`;
+}
+function drawGraph(cv, pts, line, now) {
+  const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const span = 120, vals = pts.map(p => p.v).filter(v => v != null);
+  if (line != null) vals.push(line);
+  const max = Math.max(vals.some(v => v > 0 && v < 1) ? 1e-6 : 1, ...vals) * 1.15, min = 0;
+  const X = t => W * (1 - (now - t) / span), Y = v => H - 2 - (H - 6) * (v - min) / (max - min);
+  if (line != null) { g.strokeStyle = 'rgba(255,255,255,.45)'; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(0, Y(line)); g.lineTo(W, Y(line)); g.stroke(); g.setLineDash([]); }
+  g.lineWidth = 1.8;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    if (a.v == null || b.v == null || now - b.t > span) continue;
+    g.strokeStyle = b.c; g.beginPath(); g.moveTo(X(a.t), Y(a.v)); g.lineTo(X(b.t), Y(b.v)); g.stroke();
+    if (a.m !== b.m) { g.strokeStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.moveTo(X(b.t), 0); g.lineTo(X(b.t), H); g.stroke(); }
+  }
+  g.fillStyle = '#666'; g.font = '10px ui-monospace,monospace'; g.textAlign = 'right';
+  g.fillText(max / 1.15 >= 100 ? (max / 1.15).toFixed(0) : (max / 1.15).toPrecision(2), W - 3, 10);
+}
+async function pollLive() {
+  let data;
+  try { data = await (await fetch('/live/stats', { cache: 'no-store' })).json(); } catch { return; }
+  const hist = data.history; if (!hist.length) return;
+  hist.forEach(addRecorded);
+  const now = hist[hist.length - 1].t, last = hist[hist.length - 1];
+  if (showDiag) for (const m of LM) {
+    const box = document.getElementById('lm_' + m.k); if (!box) continue;
+    let pts, cur;
+    if (m.k === 'render_fps') { pts = renderHist.map(r => ({ t: r.t, v: r.v, c: optByKey(r.m)?.color || '#fff', m: r.m })); cur = renderHist.at(-1)?.v; }
+    else { pts = hist.map(h => ({ t: h.t, v: h[m.k], c: optByKey(h.method)?.color || '#fff', m: h.method })); cur = last[m.k]; }
+    const val = box.querySelector('.val');
+    val.textContent = cur == null ? '—' : cur.toFixed(m.dp) + m.unit;
+    val.style.color = optByKey(last.method)?.color || '#fff';
+    box.querySelector('.sb').textContent = m.sub ? m.sub(last) : '';
+    drawGraph(box.querySelector('canvas'), pts, m.line ? m.line(last) : null, now);
+  }
+}
+let currentClip = 'pano', wantClip = null, clipList = [];
+async function pollClips() {
+  let d; try { d = await (await fetch('/live/clips', { cache: 'no-store' })).json(); } catch { return; }
+  clipList = d.clips; currentClip = d.current;
+  const sel = document.getElementById('clipSel'), st = document.getElementById('clipStatus');
+  sel.innerHTML = clipList.map(c => {
+    const label = c.status === 'ready' ? `${c.name} — ${c.w}×${c.h}, ${c.seconds}s${c.aspect_ok === false ? ' (not 2:1)' : ''}`
+                : c.status === 'error' ? `${c.name} — failed` : `${c.name} — ${c.step || c.status}…`;
+    return `<option value="${c.name}" ${c.status !== 'ready' ? 'disabled' : ''} ${c.name === currentClip ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+  if (wantClip) {
+    const w = clipList.find(c => c.name === wantClip);
+    if (w?.status === 'ready') { setClip(wantClip); wantClip = null; }
+    else if (w?.status === 'error') { st.textContent = `couldn't prepare ${w.name}: ${w.error}`; st.className = 'warn'; wantClip = null; }
+    else if (w) { st.textContent = `preparing ${w.name}: ${w.step || w.status}`; st.className = ''; }
+    return;
+  }
+  const cur = clipList.find(c => c.name === currentClip);
+  if (cur?.aspect_ok === false) { st.textContent = 'not a 2:1 360° video — it will look stretched'; st.className = 'warn'; }
+  else { st.textContent = cur?.downscaled_from ? `scaled down from ${cur.downscaled_from}; first ${d.max_seconds}s used` : `first ${d.max_seconds}s of each video used`; st.className = ''; }
+}
+function setClip(name) { currentClip = name; fetch('/live/set?clip=' + encodeURIComponent(name)); pollClips(); refreshUI(); }
+function upload(file) {
+  const st = document.getElementById('clipStatus'); st.className = '';
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/live/upload');
+  xhr.setRequestHeader('X-Filename', encodeURIComponent(file.name));
+  xhr.upload.onprogress = e => { if (e.lengthComputable) st.textContent = `uploading ${file.name}: ${(100 * e.loaded / e.total).toFixed(0)}%`; };
+  xhr.onload = () => {
+    let r = {}; try { r = JSON.parse(xhr.responseText); } catch {}
+    if (r.ok) { wantClip = r.name; st.textContent = `uploaded — preparing ${r.name}…`; pollClips(); }
+    else { st.textContent = `upload failed: ${r.error || xhr.status}`; st.className = 'warn'; }
+  };
+  xhr.onerror = () => { st.textContent = 'upload failed'; st.className = 'warn'; };
+  xhr.send(file);
+}
+
+async function initLive() {
+  try { const r = await fetch('/live/stats', { cache: 'no-store' }); if (!r.ok) return; } catch { return; }
+  LIVE = true;
+  for (const o of OPTIONS) o.video.pause();
+  liveImg = new Image(); liveImg.src = '/live/stream';
+  const tex = new THREE.Texture(liveImg);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+  liveMat = new THREE.MeshBasicMaterial({ map: tex });
+  setInterval(() => { if (liveImg.naturalWidth) tex.needsUpdate = true; }, 33);
+  fetch('/live/set?m=' + main.key);
+  document.getElementById('btnSplit').disabled = true;
+  document.getElementById('hint').innerHTML = '<span class="livetag">LIVE</span>Keys 1–9 run a technique on the Mac · pick or upload a video above · D stats · T recorded table · V region outline · H hide · drag to look · scroll to zoom. Split view needs recorded mode (port 8765).';
+  buildLivePanel();
+  setInterval(pollLive, 500);
+  document.getElementById('rowVideo').style.display = '';
+  document.getElementById('clipSel').onchange = e => setClip(e.target.value);
+  document.getElementById('btnUpload').onclick = () => document.getElementById('fileIn').click();
+  document.getElementById('fileIn').onchange = e => { if (e.target.files[0]) upload(e.target.files[0]); e.target.value = ''; };
+  pollClips(); setInterval(pollClips, 2000);
+  refreshUI();
+}
+
+// ---------- state
+let main = OPTIONS[2], cmp = OPTIONS[4], split = false, paused = false;
+const visible = () => split ? [main, cmp] : [main];
+
+function syncAndPlay(prevTime) {
+  for (const o of OPTIONS) {
+    if (visible().includes(o)) {
+      if (prevTime != null && Math.abs(o.video.currentTime - prevTime) > 0.05) o.video.currentTime = prevTime;
+      if (!paused) o.video.play().catch(() => {}); else o.video.pause();
+    } else o.video.pause();
+  }
+}
+function currentTime() { return main.video.currentTime || 0; }
+
+function select(which, o) {
+  if (LIVE) {
+    if (which !== 'main') return;
+    main = o; fetch('/live/set?m=' + o.key); refreshUI(); return;
+  }
+  if (!o.ok) return;
+  const t = currentTime();
+  if (which === 'main') main = o; else cmp = o;
+  syncAndPlay(t);
+  refreshUI();
+}
+
+// ---------- UI
+function makeRow(rowId, which) {
+  const row = document.getElementById(rowId);
+  OPTIONS.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<kbd>${which === 'main' ? '' : '⇧'}${i + 1}</kbd>${o.name}`;
+    b.onclick = () => select(which, o);
+    b.dataset.key = o.key;
+    (o.btns ??= []).push(b);
+    row.appendChild(b);
+  });
+}
+makeRow('rowMain', 'main');
+makeRow('rowCmp', 'cmp');
+
+function setBadge(el, o, pos) {
+  el.className = 'badge ' + pos;
+  el.style.borderLeftColor = o.color;
+  el.querySelector('.name').innerHTML = (LIVE ? '<span class="livetag">LIVE</span>' : '') + o.name;
+  el.querySelector('.name').style.color = o.color;
+  el.querySelector('.sub').textContent = LIVE ? `running live on "${currentClip}"` : (o.sub || '');
+}
+function refreshUI() {
+  for (const [rowId, sel] of [['rowMain', main], ['rowCmp', cmp]]) {
+    for (const b of document.getElementById(rowId).querySelectorAll('button')) {
+      const o = OPTIONS.find(x => x.key === b.dataset.key);
+      const on = o === sel;
+      b.classList.toggle('on', on);
+      b.style.background = on ? o.color : '';
+    }
+  }
+  document.getElementById('rowCmp').style.display = split ? '' : 'none';
+  document.getElementById('divider').style.display = split ? 'block' : 'none';
+  document.getElementById('badgeR').style.display = split ? '' : 'none';
+  document.getElementById('btnSplit').classList.toggle('on', split);
+  document.getElementById('btnSplit').style.background = split ? '#fff' : '';
+  document.getElementById('btnPlay').innerHTML = `<kbd>Space</kbd>${paused ? 'Play' : 'Pause'}`;
+  setBadge(document.getElementById('badgeL'), main, split ? 'left' : 'center');
+  setBadge(document.getElementById('badgeR'), cmp, 'right');
+  document.title = split ? `${main.name} | ${cmp.name}` : main.name;
+  document.getElementById('btnDiag').classList.toggle('on', showDiag);
+  document.getElementById('btnDiag').style.background = showDiag ? '#fff' : '';
+  document.getElementById('btnCmp').classList.toggle('on', showCmp);
+  document.getElementById('btnCmp').style.background = showCmp ? '#fff' : '';
+  document.body.classList.toggle('withdiag', showDiag);
+  if (OPTIONS[0].d) { if (!LIVE) renderDiag(); if (showCmp) renderCmp(); }
+}
+function toggleSplit() { if (LIVE) return; const t = currentTime(); split = !split; syncAndPlay(t); refreshUI(); }
+function togglePlay() { if (LIVE) return; paused = !paused; syncAndPlay(currentTime()); refreshUI(); }
+document.getElementById('btnSplit').onclick = toggleSplit;
+document.getElementById('btnPlay').onclick = togglePlay;
+document.getElementById('btnDiag').onclick = toggleDiag;
+document.getElementById('btnCmp').onclick = toggleCmp;
+
+addEventListener('keydown', e => {
+  const n = parseInt(e.code.replace(/^Digit/, ''), 10);
+  if (n >= 1 && n <= OPTIONS.length) {
+    if (e.shiftKey) { if (!split) toggleSplit(); select('cmp', OPTIONS[n - 1]); }
+    else select('main', OPTIONS[n - 1]);
+  } else if (e.code === 'KeyS') toggleSplit();
+  else if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  else if (e.code === 'KeyD') toggleDiag();
+  else if (e.code === 'KeyT') toggleCmp();
+  else if (e.code === 'KeyV') outline.visible = !outline.visible;
+  else if (e.code === 'KeyH') { const p = document.getElementById('panel'); p.style.display = p.style.display === 'none' ? '' : 'none'; }
+});
+
+// ---------- three.js scene
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.xr.enabled = true;
+document.body.appendChild(renderer.domElement);
+document.getElementById('vrslot').appendChild(VRButton.createButton(renderer));
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(90, innerWidth / innerHeight, 0.1, 100);
+const geo = new THREE.SphereGeometry(10, 128, 64);
+geo.scale(-1, 1, 1);
+const sphere = new THREE.Mesh(geo, main.mat);
+scene.add(sphere);
+
+// outline of the centred 120°x120° region that the "in view" numbers and the viewport-only version use
+function regionOutline(deg) {
+  const pts = [], u0 = 0.5 - deg / 720, u1 = 0.5 + deg / 720, v0 = 0.5 - deg / 360, v1 = 0.5 + deg / 360, N = 64;
+  const P = (u, v) => { const ph = u * 2 * Math.PI, th = v * Math.PI, r = 9.8;
+    return new THREE.Vector3(r * Math.cos(ph) * Math.sin(th), r * Math.cos(th), r * Math.sin(ph) * Math.sin(th)); };
+  for (let i = 0; i <= N; i++) pts.push(P(u0 + (u1 - u0) * i / N, v0));
+  for (let i = 0; i <= N; i++) pts.push(P(u1, v0 + (v1 - v0) * i / N));
+  for (let i = 0; i <= N; i++) pts.push(P(u1 - (u1 - u0) * i / N, v1));
+  for (let i = 0; i <= N; i++) pts.push(P(u0, v1 - (v1 - v0) * i / N));
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+                        new THREE.LineDashedMaterial({ color: 0xffff00, dashSize: 0.3, gapSize: 0.2 }));
+}
+const outline = regionOutline(120);
+outline.computeLineDistances();
+outline.visible = false;
+scene.add(outline);
+
+let lon = 180, lat = 0, down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = { x: e.clientX, y: e.clientY, lon, lat });
+addEventListener('pointerup', () => down = null);
+addEventListener('pointermove', e => {
+  if (!down) return;
+  lon = down.lon - (e.clientX - down.x) * 0.15;
+  lat = Math.max(-85, Math.min(85, down.lat + (e.clientY - down.y) * 0.15));
+});
+addEventListener('wheel', e => { camera.fov = Math.max(20, Math.min(110, camera.fov + e.deltaY * 0.05)); camera.updateProjectionMatrix(); });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+// keep the right-hand video locked to the left one
+setInterval(() => {
+  if (split && !paused && Math.abs(cmp.video.currentTime - main.video.currentTime) > 0.08)
+    cmp.video.currentTime = main.video.currentTime;
+}, 500);
+
+const statsEl = document.getElementById('stats');
+let frames = 0, last = performance.now();
+setInterval(() => {
+  const v = main.video, q = v.getVideoPlaybackQuality?.();
+  const rf = frames * 1000 / (performance.now() - last);
+  renderHist.push({ t: Date.now() / 1000, v: rf, m: main.key }); while (renderHist.length > 130) renderHist.shift();
+  statsEl.style.display = LIVE ? 'none' : '';
+  statsEl.textContent = `render ${rf.toFixed(0)} fps · ` +
+    `${v.videoWidth}×${v.videoHeight} · t=${v.currentTime.toFixed(2)}s · dropped ${q ? q.droppedVideoFrames : '?'}`;
+  frames = 0; last = performance.now();
+}, 1000);
+
+renderer.setAnimationLoop(() => {
+  frames++;
+  if (!renderer.xr.isPresenting) {
+    const phi = THREE.MathUtils.degToRad(90 - lat), theta = THREE.MathUtils.degToRad(lon);
+    camera.lookAt(Math.sin(phi) * Math.cos(theta), Math.cos(phi), Math.sin(phi) * Math.sin(theta));
+  }
+  if (LIVE && liveMat) {
+    sphere.material = liveMat; renderer.render(scene, camera); return;
+  }
+  if (split && !renderer.xr.isPresenting) {
+    const w = innerWidth, h = innerHeight;
+    renderer.setScissorTest(true);
+    for (const [o, x] of [[main, 0], [cmp, w / 2]]) {
+      sphere.material = o.mat;
+      renderer.setScissor(x, 0, w / 2, h);
+      renderer.setViewport(0, 0, w, h);
+      renderer.render(scene, camera);
+    }
+    renderer.setScissorTest(false);
+  } else {
+    sphere.material = main.mat;
+    renderer.render(scene, camera);
+  }
+});
+
+const pick = params.get('a') && OPTIONS.find(o => o.key === params.get('a'));
+if (pick) main = pick;
+refreshUI();
+syncAndPlay(0);
+loadMetrics().then(() => { refreshUI(); initLive(); });
+</script>
+</body>
+</html>

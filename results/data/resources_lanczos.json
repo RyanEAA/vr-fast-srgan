@@ -1,0 +1,29 @@
+{
+ "method": "lanczos",
+ "stream_file": "out/lowres.mp4",
+ "stream_resolution": "480x270",
+ "output_resolution": "1920x1080",
+ "speed": {
+  "ms_per_frame_busy": 7.079693046671309,
+  "decode_ms": 0.6627518866844184,
+  "upscale_ms": 6.416941159986891,
+  "fps": 24.983484525983457,
+  "realtime": true
+ },
+ "cpu": {
+  "avg_cores_busy_during_playback": 0.8832995898008839,
+  "cpu_ms_per_frame": 35.35534
+ },
+ "ram": {
+  "peak_mb": 195.3125,
+  "after_setup_mb": 49.0625
+ },
+ "gpu": {
+  "mps_driver_peak_mb": 0.0,
+  "util_avg_pct": 15.069767441860465,
+  "util_max_pct": 22.0,
+  "util_idle_pct": 3.0,
+  "gpu_mem_in_use_mb": 422.09375,
+  "gpu_mem_idle_mb": 393.44375
+ }
+}

@@ -1,0 +1,19 @@
+# environment and third-party code (recreated by ./setup.sh)
+env/
+Fast-SRGAN/
+__pycache__/
+# videos and generated outputs (recreated by the scripts; results/ keeps a snapshot)
+clips/
+prepared/
+out/
+out_cpu/
+resources/
+/crop_speed.json
+*.mp4
+*.log
+# misc
+.DS_Store
+Claude outputs/
+_repro_test/
+repro_test*
+publish.command

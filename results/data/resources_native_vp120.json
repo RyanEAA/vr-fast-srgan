@@ -1,0 +1,29 @@
+{
+ "method": "native_vp120",
+ "stream_file": "out/stream_vp120.mp4",
+ "stream_resolution": "640x720",
+ "output_resolution": "1920x1080",
+ "speed": {
+  "ms_per_frame_busy": 3.648259473326713,
+  "decode_ms": 1.308793040013067,
+  "upscale_ms": 2.339466433313646,
+  "fps": 24.978861813044805,
+  "realtime": true
+ },
+ "cpu": {
+  "avg_cores_busy_during_playback": 0.29631557834938865,
+  "cpu_ms_per_frame": 11.862653333333334
+ },
+ "ram": {
+  "peak_mb": 251.34375,
+  "after_setup_mb": 60.78125
+ },
+ "gpu": {
+  "mps_driver_peak_mb": 0.0,
+  "util_avg_pct": 14.146341463414634,
+  "util_max_pct": 17.0,
+  "util_idle_pct": 3.0,
+  "gpu_mem_in_use_mb": 399.640625,
+  "gpu_mem_idle_mb": 398.959375
+ }
+}
